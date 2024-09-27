@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfico de Pizza com Questionário</title>
+</head>
+<body>
+    <h2>Questionário</h2>
+    <form id="quizForm">
+        <div id="questions"></div>
+        <button type="submit">Ver Resultado</button>
+    </form>
+
+    <div id="resultado" style="display:none;">
+        <h2>Resultado</h2>
+        <canvas id="pizzaCanvas" width="400" height="400"></canvas>
+        <div id="textResult"></div>
+    </div>
+
+    <script>
+        // Definindo as perguntas, opções e pontuações
+        const quizData = [
+            {
+                question: "Pergunta 1",
+                options: ["Opção A1", "Opção B1", "Opção C1", "Opção D1"],
+                scores: [1, 1, 1, 1] // Pontuações para A, B, C, D
+            },
+            {
+                question: "Pergunta 2",
+                options: ["Opção A2", "Opção B2", "Opção C2", "Opção D2"],
+                scores: [1, 1, 1, 1] // Pontuações para A, B, C, D
+            },
+            {
+                question: "Pergunta 3",
+                options: ["Opção A3", "Opção B3", "Opção C3", "Opção D3"],
+                scores: [1, 1, 1, 1] // Pontuações para A, B, C, D
+            }
+        ];
+
+        const numQuestions = quizData.length;
+        let scores = [0, 0, 0, 0]; // Inicializando a pontuação para A, B, C, D
+
+        // Gerando as perguntas no HTML
+        const questionsContainer = document.getElementById('questions');
+        quizData.forEach((item, index) => {
+            let div = document.createElement('div');
+            div.innerHTML = `<h3>${item.question}</h3>`;
+            item.options.forEach((option, optIndex) => {
+                div.innerHTML += `
+                    <label>
+                        <input type="radio" name="question${index}" value="${optIndex}">
+                        ${option}
+                    </label><br>
+                `;
+            });
+            questionsContainer.appendChild(div);
+        });
+
+        // Função para processar o formulário e gerar o gráfico de pizza
+        document.getElementById('quizForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Previne o envio do formulário
+
+            // Zerando pontuações
+            scores = [0, 0, 0, 0];
+
+            // Processando as respostas
+            quizData.forEach((item, index) => {
+                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                if (selectedOption) {
+                    const optIndex = parseInt(selectedOption.value);
+                    scores[optIndex] += item.scores[optIndex];
+                }
+            });
+
+            // Esconder o questionário e mostrar o resultado
+            document.getElementById('quizForm').style.display = 'none';
+            document.getElementById('resultado').style.display = 'block';
+
+            // Desenhar o gráfico de pizza
+            desenharGraficoPizza(scores);
+
+            // Exibir o resultado em texto
+            exibirResultadoTexto(scores);
+        });
+
+        // Função para desenhar o gráfico de pizza
+        function desenharGraficoPizza(scores) {
+            const canvas = document.getElementById('pizzaCanvas');
+            const ctx = canvas.getContext('2d');
+            const total = scores.reduce((acc, score) => acc + score, 0); // Soma dos pontos
+            let startAngle = 0;
+
+            // Definir cores para os segmentos
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
+
+            // Limpar o canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenhar cada parte do gráfico de pizza
+            scores.forEach((score, index) => {
+                const sliceAngle = (score / total) * 2 * Math.PI;
+                ctx.beginPath();
+                ctx.moveTo(200, 200); // Centro do círculo
+                ctx.arc(200, 200, 150, startAngle, startAngle + sliceAngle);
+                ctx.fillStyle = colors[index];
+                ctx.fill();
+                startAngle += sliceAngle;
+                ctx.closePath();
+            });
+        }
+
+        // Função para exibir o resultado em texto
+        function exibirResultadoTexto(scores) {
+            const textResult = document.getElementById('textResult');
+            textResult.innerHTML = '';
+
+            const total = scores.reduce((acc, score) => acc + score, 0);
+
+            const labels = ['A', 'B', 'C', 'D'];
+            const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
+
+            labels.forEach((label, index) => {
+                const percentage = ((scores[index] / total) * 100).toFixed(2);
+                textResult.innerHTML += `
+                    <p style="color:${colors[index]};">
+                        ${label}: ${scores[index]} pontos (${percentage}%)
+                    </p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
